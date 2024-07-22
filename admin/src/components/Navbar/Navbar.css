@@ -6,7 +6,8 @@
 }
 
 .navbar .logo{
-    width: max(10%, 80px);
+    width: 70px;
+    height: 70px;
 }
 
 .navbar .profile{

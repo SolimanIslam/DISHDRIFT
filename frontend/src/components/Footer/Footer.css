@@ -51,7 +51,10 @@
     background-color: grey;
     border: none;
 }
-
+.logo{
+    width: auto;
+    height: 70px;
+}
 
 @media(max-width:750px) {
   .footer-content{

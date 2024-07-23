@@ -1,5 +1,6 @@
-import React, { useContext, useState } from 'react'
-import { StoreContext } from '../../context/StoreContext'
+import React, { useContext, useEffect, useState } from 'react'
+import { StoreContext } from '../../context/StoreContext';
+import { useNavigate } from 'react-router-dom';
 import './PlaceOrder.css';
 import axios from 'axios';
 
@@ -22,7 +23,6 @@ const PlaceOrder = () => {
     setData(prev => ({ ...prev, [name]: value }))
   };
 
-
   // redirect to the payment gateway
   const placeOrder = async (event) => {
     event.preventDefault();
@@ -42,17 +42,28 @@ const PlaceOrder = () => {
       amount: getTotalCartAmount() + 2, //2: delivery charge
     }
     // send the order data from the api
-    let response = await axios.post(url+'/api/order/place', orderData, {headers: {token}});
-    if (response.data.success){
-      const {session_url} = response.data;
+    let response = await axios.post(url + '/api/order/place', orderData, { headers: { token } });
+    if (response.data.success) {
+      const { session_url } = response.data;
       // send the user on the session url
       window.location.replace(session_url);
-    } else{
+    } else {
       alert('Error')
     }
 
 
   }
+
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    console.log(token);
+    if (!token) {
+      navigate('/cart')
+    } else if (getTotalCartAmount() === 0) {
+      navigate('/cart')
+    }
+  }, [token])
 
   return (
     <form onSubmit={placeOrder} className='place-order'>

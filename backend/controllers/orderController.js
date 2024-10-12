@@ -7,19 +7,19 @@ const stripe = new Stripe(process.env.STRIPE_SECRET_KEY);
 // Placing user Order for frontend 
 const placeOrder = async (req, res) => {
     const frontend_url = 'http://localhost:3000';
-
-    // creating a new order
     try {
+        // Creating a new order
         const newOrder = new orderModel({
             userId: req.body.userId,
             items: req.body.items,
             amount: req.body.amount,
             address: req.body.address,
         });
-        // save the new order in the db
+
+        // Save the new order in the db
         await newOrder.save();
 
-        // cleaning the user's cart data
+        // Cleaning the user's cart data
         await userModel.findByIdAndUpdate(req.body.userId, { cartData: {} });
 
         // Create the stripe payment link
@@ -34,7 +34,7 @@ const placeOrder = async (req, res) => {
             quantity: item.quantity
         }));
 
-        // push the delivery charge
+        // Push the delivery charge
         line_items.push({
             price_data: {
                 currency: 'usd',
@@ -54,65 +54,61 @@ const placeOrder = async (req, res) => {
             cancel_url: `${frontend_url}/verify?success=false&orderId=${newOrder._id}`
         });
 
-        res.json({ success: true, session_url: session.url });
+        res.status(200).json({ success: true, session_url: session.url });
     } catch (error) {
         console.error(error);
-        res.json({ success: false, message: "Error" });
+        res.status(500).json({ success: false, message: "Internal Server Error" });
     }
 }
 
-// it is better to use webhooks, but this is a temporary way of doing it for simplicity
-// verify the order payment
+// Verify the order payment
 const verifyOrder = async (req, res) => {
     const { orderId, success } = req.body;
     try {
-        if (success == 'true') {
+        if (success === 'true') {
             await orderModel.findByIdAndUpdate(orderId, { payment: true });
-            res.json({ success: true, message: "Paid" });
+            res.status(200).json({ success: true, message: "Payment Successful" });
         } else {
-            // payment is cancelled
+            // Payment is cancelled
             await orderModel.findByIdAndDelete(orderId);
-            res.json({ success: false, message: "Not Paid" });
+            res.status(400).json({ success: false, message: "Payment Not Successful" });
         }
     } catch (error) {
         console.error(error);
-        res.json({ success: false, message: "Error" })
+        res.status(500).json({ success: false, message: "Internal Server Error" });
     }
 }
 
-
-// user orders for frontend
-
+// User orders for frontend
 const userOrders = async (req, res) => {
     try {
         const orders = await orderModel.find({ userId: req.body.userId });
-        res.json({ success: true, data: orders })
+        res.status(200).json({ success: true, data: orders });
     } catch (error) {
         console.error(error);
-        res.json({ success: false, message: 'Error fetching userOrders - userOrders function' })
+        res.status(500).json({ success: false, message: 'Internal Server Error' });
     }
 }
 
-//listing orders for admin panel
+// Listing orders for admin panel
 const listOrders = async (req, res) => {
     try {
         const orders = await orderModel.find({});
-        res.json({ success: true, data: orders })
+        res.status(200).json({ success: true, data: orders });
     } catch (error) {
         console.error(error);
-        res.json({ success: false, message: 'Error fetching order list - listOrders function' })
+        res.status(500).json({ success: false, message: 'Internal Server Error' });
     }
 }
 
-
-//Api to update oredre status from admin panel
+// API to update order status from admin panel
 const updateStatus = async (req, res) => {
     try {
         await orderModel.findByIdAndUpdate(req.body.orderId, { status: req.body.status });
-        res.json({ success: true, message: "Status Updated" })
+        res.status(200).json({ success: true, message: "Status Updated" });
     } catch (error) {
         console.error(error);
-        res.json({ success: false, message: 'Error updating order status - orderModel function' })
+        res.status(500).json({ success: false, message: 'Internal Server Error' });
     }
 }
 

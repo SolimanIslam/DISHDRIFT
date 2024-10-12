@@ -1,11 +1,10 @@
 import jwt from 'jsonwebtoken';
 
-
-// this middleware will take the token, convert into userId, using this user id we can add, remove, getdata for this user 
+// Middleware to authenticate user based on JWT token
 const authMiddleWare = async (req, res, next) => {
     const { token } = req.headers;
     if (!token) {
-        return res.json({ success: false, message: 'Not Authorized Login Again' });
+        return res.status(401).json({ success: false, message: 'Not Authorized, Login Again' });
     }
     try {
         const token_decode = jwt.verify(token, process.env.JWT_SECRET);
@@ -13,7 +12,7 @@ const authMiddleWare = async (req, res, next) => {
         next();
     } catch (error) {
         console.error(error);
-        res.json({ success: false, message: "Error" })
+        return res.status(401).json({ success: false, message: 'Token is invalid or has expired, please log in again' });
     }
 }
 

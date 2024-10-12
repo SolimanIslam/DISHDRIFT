@@ -1,39 +1,42 @@
-import express from "express";
-import cors from "cors";
-import { connectDB } from "./config/db.js";
-import foodRouter from "./routes/foodRoute.js";
-import userRouter from "./routes/userRoute.js";
-import cartRouter from "./routes/cartRoute.js";
+
+
+import express from 'express';
+import cors from 'cors';
 import 'dotenv/config';
-import orderRouter from "./routes/orderRoute.js";
+import mongoose from 'mongoose';
+
+import foodRouter from './routes/foodRoute.js';
+import userRouter from './routes/userRoute.js';
+import cartRouter from './routes/cartRoute.js';
+import orderRouter from './routes/orderRoute.js';
 
 
-//app config
+// dotenv.config();
+
 const app = express();
-const port = 4000;
+const port = process.env.PORT || 4000;
 
-// middleware
+// Middleware
 app.use(express.json());
 app.use(cors());
 
-
-// db connection
-connectDB();
+// Database Connection
+mongoose.connect(process.env.MONGO_CONNECTION_STRING)
+  .then(() => console.log('MongoDB connected'))
+  .catch(err => console.error('MongoDB connection error:', err));
 
 // API Endpoints
-app.use("/api/food", foodRouter);
-app.use('/images', express.static('uploads'));
+app.use('/api/food', foodRouter);
 app.use('/api/user', userRouter);
 app.use('/api/cart', cartRouter);
 app.use('/api/order', orderRouter);
+app.use('/images', express.static('uploads'));
 
-
+// Default Route
 app.get('/', (req, res) => {
-    res.send('API is Working')
+  res.send('API is Working');
 });
 
 app.listen(port, () => {
-    console.log(`Server is Working on http://localhost:${port}`);
+  console.log(`Server is listening on http://localhost:${port}`);
 });
-
-//mongodb+srv://islamsalamaie:bB296aACa9nju4iT@cluster0.mw1ele7.mongodb.net/?

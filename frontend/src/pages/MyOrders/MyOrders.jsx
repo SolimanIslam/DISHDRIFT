@@ -9,9 +9,15 @@ const MyOrders = () => {
     const [data, setData] = useState([]);
 
     const fetchOrders = async () => {
-        const response = await axios.post(url + '/api/order/userorders', {}, { headers: { token } });
-        setData(response.data.data);
-    }
+        try {
+            // Use GET request to fetch user orders, and send the token in headers
+            const response = await axios.get(url + '/api/order/userorders', { headers: { token } });
+            setData(response.data.data);
+        } catch (error) {
+            console.error("Error fetching user orders:", error);
+        }
+    };
+
 
     useEffect(() => {
         if (token) {

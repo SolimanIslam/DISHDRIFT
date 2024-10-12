@@ -1,15 +1,27 @@
 import userModel from '../models/userModel.js';
 
-// Add Items to a user
-const addToCart = async (req, res) => {
+const findUser = async (userId, res) => {
     try {
-        const { userId, itemId } = req.body;
-
-        // Fetch user and cart data
         const user = await userModel.findById(userId);
         if (!user) {
-            return res.status(404).json({ success: false, message: "User Not Found" });
+            res.status(404).json({ success: false, message: "User Not Found" });
+            return null;
         }
+        return user;
+    } catch (error) {
+        console.error('Error finding user:', error);
+        res.status(500).json({ success: false, message: "Internal Server Error" });
+        return null;
+    }
+};
+
+// Add item to cart (POST request)
+const addToCart = async (req, res) => {
+    const { userId, itemId } = req.body;
+
+    try {
+        const user = await findUser(userId, res);
+        if (!user) return;
 
         const cartData = user.cartData || {};
 
@@ -19,54 +31,54 @@ const addToCart = async (req, res) => {
         await userModel.findByIdAndUpdate(userId, { cartData }, { new: true });
         res.status(200).json({ success: true, message: "Added To Cart" });
     } catch (error) {
-        console.error(error);
+        console.error('Error adding to cart:', error);
         res.status(500).json({ success: false, message: "Internal Server Error" });
     }
-}
+};
 
-// Remove an item from a user cart
+// Remove item from cart (DELETE request)
 const removeFromCart = async (req, res) => {
-    try {
-        const { userId, itemId } = req.body;
+    const { userId, itemId } = req.body;
 
-        // Fetch user and cart data
-        const user = await userModel.findById(userId);
-        if (!user) {
-            return res.status(404).json({ success: false, message: "User Not Found" });
-        }
+    try {
+        const user = await findUser(userId, res);
+        if (!user) return;
 
         const cartData = user.cartData || {};
 
-        // Update item in cart
+        // Check if item is in the cart
         if (cartData[itemId]) {
             cartData[itemId] = Math.max(cartData[itemId] - 1, 0);
+
+            // Remove item if quantity reaches zero
+            if (cartData[itemId] === 0) {
+                delete cartData[itemId];
+            }
+
             await userModel.findByIdAndUpdate(userId, { cartData }, { new: true });
             res.status(200).json({ success: true, message: "Removed From Cart" });
         } else {
             res.status(404).json({ success: false, message: "Item Not Found In Cart" });
         }
     } catch (error) {
-        console.error(error);
+        console.error('Error removing from cart:', error);
         res.status(500).json({ success: false, message: "Internal Server Error" });
     }
-}
+};
 
-// Fetch user Cart Data
+// Get cart data (GET request)
 const getCart = async (req, res) => {
-    try {
-        const { userId } = req.body;
+    const { userId } = req.body;
 
-        // Fetch user and cart data
-        const user = await userModel.findById(userId);
-        if (!user) {
-            return res.status(404).json({ success: false, message: "User Not Found" });
-        }
+    try {
+        const user = await findUser(userId, res);
+        if (!user) return;
 
         res.status(200).json({ success: true, cartData: user.cartData || {} });
     } catch (error) {
-        console.error(error);
+        console.error('Error fetching cart:', error);
         res.status(500).json({ success: false, message: "Internal Server Error" });
     }
-}
+};
 
-export { getCart, addToCart, removeFromCart };
+export { addToCart, removeFromCart, getCart };

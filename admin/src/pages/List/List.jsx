@@ -16,15 +16,27 @@ const List = ({ url }) => {
   }
 
   const removeFood = async (foodId) => {
-    const response = await axios.post(`${url}/api/food/remove`, { id: foodId });
-    await fetchList();
-    if (response.data.success) {
-      toast.success(response.data.message)
+    try {
+        // Use DELETE method and pass foodId as a query parameter
+        const response = await axios.delete(`${url}/api/food/remove`, {
+            data: { id: foodId }
+        });
+
+        // Re-fetch the updated food list
+        await fetchList();
+
+        // Show success or error messages based on the response
+        if (response.data.success) {
+            toast.success(response.data.message);
+        } else {
+            toast.error('Error Removing Food');
+        }
+    } catch (error) {
+        console.error("Error removing food:", error);
+        toast.error('Internal Server Error');
     }
-    else {
-      toast.error('Error Removing Food');
-    }
-  }
+};
+
 
   useEffect(() => {
     fetchList();

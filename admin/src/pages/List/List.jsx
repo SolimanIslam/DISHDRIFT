@@ -6,25 +6,44 @@ import { toast } from 'react-toastify';
 const List = ({ url }) => {
   const [list, setList] = useState([]);
 
+
   const fetchList = async () => {
-    const response = await axios.get(`${url}/api/food/list`);
-    if (response.data.success) {
-      setList(response.data.data)
-    } else {
-      toast.error('Error Fetching Data')
+    try {
+      const response = await axios.get(`${url}/api/food/list`);
+      if (response.data.success) {
+        setList(response.data.data);
+      } else {
+        toast.error('Error Fetching Data');
+      }
+    } catch (error) {
+      console.error("Error fetching food list:", error);
+      toast.error('Error Fetching Data');
     }
-  }
+  };
+
 
   const removeFood = async (foodId) => {
-    const response = await axios.post(`${url}/api/food/remove`, { id: foodId });
-    await fetchList();
-    if (response.data.success) {
-      toast.success(response.data.message)
+    try {
+      // Use DELETE method and pass foodId as a query parameter
+      const response = await axios.delete(`${url}/api/food/remove`, {
+        data: { id: foodId }
+      });
+
+      // Re-fetch the updated food list
+      await fetchList();
+
+      // Show success or error messages based on the response
+      if (response.data.success) {
+        toast.success(response.data.message);
+      } else {
+        toast.error('Error Removing Food');
+      }
+    } catch (error) {
+      console.error("Error removing food:", error);
+      toast.error('Internal Server Error');
     }
-    else {
-      toast.error('Error Removing Food');
-    }
-  }
+  };
+
 
   useEffect(() => {
     fetchList();

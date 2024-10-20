@@ -23,24 +23,27 @@ const Orders = ({ url }) => {
     }
   }
 
+
   const statusHandle = async (event, orderId) => {
     const { value } = event.target;
     try {
-      const response = await axios.post(url + '/api/order/status', {
+      // Use PUT request to update the order status
+      const response = await axios.put(url + '/api/order/status', {
         orderId,
         status: value
       });
 
       if (response.data.success) {
-        await fetchAllOrders();
+        await fetchAllOrders();  // Re-fetch all orders after updating the status
       } else {
         toast.error("Error updating order status");
       }
     } catch (error) {
       toast.error("Error updating order status");
-      console.error(error);
+      console.error("Error updating order status:", error);
     }
-  }
+  };
+
 
   useEffect(() => {
     fetchAllOrders();
